@@ -149,11 +149,14 @@ PixelBuffer renderSceneToBuffer(Scene& scene, RenderConfig& config)
 
     if (config.use_BVH)
     {
-        if (config.print_info)
-            std::cout<<"Building BVH tree start"<<std::endl;
-        buildBVHTree(scene, config.min_triangles_per_leaf, config.max_tree_depth);
-        if (config.print_info)
-            std::cout<<"Building BVH tree completed"<<std::endl;
+        if (scene.bvhRoot == nullptr)
+        {
+            if (config.print_info)
+                std::cout<<"Building BVH tree start"<<std::endl;
+            buildBVHTree(scene, config.min_triangles_per_leaf, config.max_tree_depth);
+            if (config.print_info)
+                std::cout<<"Building BVH tree completed"<<std::endl;
+        }
     }
 
     if (config.print_info)
