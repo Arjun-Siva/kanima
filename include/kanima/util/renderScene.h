@@ -82,6 +82,7 @@ void workerThread(Scene& scene, PixelBuffer& buffer, int ray_depth)
 void bucketRender(Scene& scene, PixelBuffer& buffer, int numThreads, int bucketSize, int rayDepth)
 {
    createBuckets(scene.width, scene.height, bucketSize);
+   scene.bucketSize = bucketSize;
 
    std::vector<std::thread> threads;
    for (int i = 0; i < numThreads; ++i)
@@ -128,6 +129,8 @@ struct RenderConfig
 PixelBuffer renderSceneToBuffer(Scene& scene, RenderConfig& config)
 {
     PixelBuffer buffer(config.buffer_width, config.buffer_height);
+    scene.height = config.buffer_height;
+    scene.width = config.buffer_width;
 
     // config
     if (config.print_info)
@@ -156,6 +159,10 @@ PixelBuffer renderSceneToBuffer(Scene& scene, RenderConfig& config)
             buildBVHTree(scene, config.min_triangles_per_leaf, config.max_tree_depth);
             if (config.print_info)
                 std::cout<<"Building BVH tree completed"<<std::endl;
+        }
+        else
+        {
+            std::cout<<"Tree already built"<<std::endl;
         }
     }
 
