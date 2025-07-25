@@ -1,2 +1,1 @@
 # Kanima - ray tracer library
-
