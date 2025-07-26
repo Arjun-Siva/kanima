@@ -27,6 +27,7 @@ target_sources(kanima
         src/2dShapes/shapes.cpp
         src/accTree/bvhnode.cpp
         src/stb_image/stb_image.cpp
+        src/util/renderScene.cpp
 )
 
 # Only expose public headers

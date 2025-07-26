@@ -8,7 +8,7 @@ int main()
 
     krt::Scene scene(sceneFileName);
 
-    RenderConfig config;
+    krt::RenderConfig config;
     config.bucket_size = scene.bucketSize;
     config.buffer_height = scene.height;
     config.buffer_width = scene.width;
@@ -19,7 +19,7 @@ int main()
     config.ray_depth = 5;
     config.print_info = true;
 
-    PixelBuffer output_buff = renderSceneToBuffer(scene, config);
+    krt::PixelBuffer output_buff = renderSceneToBuffer(scene, config);
 
     output_buff.writeToPPM("dragon.ppm");
 
