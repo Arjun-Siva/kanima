@@ -37,8 +37,8 @@ public:
     std::unordered_map<std::string, std::shared_ptr<Texture>> textureMap;
     int bucketSize;
     std::unique_ptr<BVHNode> bvhRoot = nullptr;
-    int max_bvhtree_depth;
-    int min_triangles_per_bvhnode;
+    int max_bvhtree_depth = 24;
+    int min_triangles_per_bvhnode = 4;
     bool useBVH = false;
 
 

@@ -125,7 +125,7 @@ PixelBuffer renderSceneToBuffer(Scene& scene, RenderConfig& config)
 
     if (config.use_BVH)
     {
-        if (scene.bvhRoot == nullptr)
+        if (scene.bvhRoot == nullptr || config.rebuild_BVH)
         {
             if (config.print_info)
                 std::cout<<"Building BVH tree start"<<std::endl;

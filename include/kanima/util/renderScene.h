@@ -20,6 +20,7 @@ struct RenderConfig
 {
     bool use_BVH = true;
     bool print_info = false;
+    bool rebuild_BVH = false;
     int max_tree_depth = 24;
     int min_triangles_per_leaf = 4;
     int buffer_width = 1280;

@@ -42,6 +42,16 @@ void Scene::addMaterial(Material &material)
     meshMaterials.push_back(material);
 }
 
+void Scene::addLight(Light &light)
+{
+    lights.push_back(light);
+}
+
+void Scene::addTexture(std::string &name, std::shared_ptr<Texture> texture)
+{
+    textureMap[name] = texture;
+}
+
 void Scene::parseSceneFile(const std::string &sceneFileName)
 {
     // default values for scene, camera
