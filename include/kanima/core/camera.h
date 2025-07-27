@@ -50,6 +50,8 @@ public:
 
     void transformBasis(mat3& rotationMatrix);
 
+    void turntable(const vec3& target, float angleYDeg);
+
 };
 }
 #endif // CAMERA_H

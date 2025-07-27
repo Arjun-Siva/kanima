@@ -107,6 +107,20 @@ void Camera::transformBasis(mat3& rotationMatrix)
     up = rotationMatrix * up;
 }
 
+void Camera::turntable(const vec3& target, float angleYDeg)
+{
+    // Offset from target to camera
+    vec3 offset = eye - target;
+
+    // Rotate offset around global Y
+    offset = rotateY(angleYDeg) * offset;
+
+    eye = target + offset;
+    forward = (target - eye).normalized();
+    right = forward.cross(vec3(0, 1, 0)).normalized();
+    up = right.cross(forward).normalized();
+}
+
 }
 
 
