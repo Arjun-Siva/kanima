@@ -35,11 +35,12 @@ public:
     std::vector<Light> lights;
     std::vector<Material> meshMaterials;
     std::unordered_map<std::string, std::shared_ptr<Texture>> textureMap;
-    int bucketSize;
+    int bucketSize = 24;
     std::unique_ptr<BVHNode> bvhRoot = nullptr;
     int max_bvhtree_depth = 24;
     int min_triangles_per_bvhnode = 4;
     bool useBVH = false;
+    int gi_ray_count = 0;
 
 
     Scene();

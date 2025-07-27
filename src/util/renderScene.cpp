@@ -1,6 +1,5 @@
 #include <kanima/util/renderScene.h>
 
-
 // helper functions not exposed outside
 namespace
 {
@@ -15,6 +14,7 @@ struct Bucket
 // Shared queue and mutex
 std::queue<Bucket> renderQueue;
 std::mutex queueMutex;
+int numberOfBuckets;
 
 void createBuckets(int imageWidth, int imageHeight, int bucketSize)
 {
@@ -27,9 +27,10 @@ void createBuckets(int imageWidth, int imageHeight, int bucketSize)
            renderQueue.push({x, y, w, h});
         }
     }
+    numberOfBuckets = renderQueue.size();
 }
 
-void renderRegion(Scene& scene, PixelBuffer& buffer, int startX, int startY, int region_width, int region_height, int ray_depth)
+void renderRegion(Scene& scene, PixelBuffer& buffer, int startX, int startY, int region_width, int region_height, int ray_depth, int sample_per_pixel)
 {
     Camera& camera = scene.camera;
 
@@ -37,19 +38,24 @@ void renderRegion(Scene& scene, PixelBuffer& buffer, int startX, int startY, int
     {
         for (int x = startX; x < startX + region_width; ++x)
         {
-            float u = (x + 0.5f) / buffer.getWidth();
-            float v = (y + 0.5f) / buffer.getHeight();
+            Color pixelColor = Color(0, 0, 0);
+            for (int n = 0; n < sample_per_pixel; ++n)
+            { //AA
+                float x_offset = static_cast<float>(rand()) / RAND_MAX;
+                float y_offset = static_cast<float>(rand()) / RAND_MAX;
+                float u = (x + x_offset) / buffer.getWidth();
+                float v = (y + y_offset) / buffer.getHeight();
+                Ray ray = camera.generateRay(u, v);
 
-            Ray ray = camera.generateRay(u, v);
-
-            Color pixelColor = recursiveShader(ray, scene, ray_depth);
-            buffer.setColor(x, y, pixelColor);
+                pixelColor = pixelColor + recursiveShader(ray, scene, ray_depth);
+            }
+            buffer.setColor(x, y, pixelColor * (1.0f / sample_per_pixel));
         }
     }
 }
 
 // Thread function
-void workerThread(Scene& scene, PixelBuffer& buffer, int ray_depth)
+void workerThread(Scene& scene, PixelBuffer& buffer, int ray_depth, int sample_per_pixel)
 {
     while (true)
     {
@@ -63,11 +69,12 @@ void workerThread(Scene& scene, PixelBuffer& buffer, int ray_depth)
             renderQueue.pop();
 
         }
-        renderRegion(scene, buffer, region.x, region.y, region.width, region.height, ray_depth);
+        renderRegion(scene, buffer, region.x, region.y, region.width, region.height, ray_depth, sample_per_pixel);
+        std::cout<< (1.0f - static_cast<float>(renderQueue.size()) / numberOfBuckets) * 100 <<"% completed."<<std::endl;
     }
 }
 
-void bucketRender(Scene& scene, PixelBuffer& buffer, int numThreads, int bucketSize, int rayDepth)
+void bucketRender(Scene& scene, PixelBuffer& buffer, int numThreads, int bucketSize, int rayDepth, int sample_per_pixel)
 {
    createBuckets(scene.width, scene.height, bucketSize);
    scene.bucketSize = bucketSize;
@@ -75,7 +82,7 @@ void bucketRender(Scene& scene, PixelBuffer& buffer, int numThreads, int bucketS
    std::vector<std::thread> threads;
    for (int i = 0; i < numThreads; ++i)
    {
-       threads.emplace_back(workerThread, std::ref(scene), std::ref(buffer), rayDepth);
+       threads.emplace_back(workerThread, std::ref(scene), std::ref(buffer), rayDepth, sample_per_pixel);
    }
 
    for (auto& t : threads)
@@ -104,6 +111,7 @@ PixelBuffer renderSceneToBuffer(Scene& scene, RenderConfig& config)
     PixelBuffer buffer(config.buffer_width, config.buffer_height);
     scene.height = config.buffer_height;
     scene.width = config.buffer_width;
+    scene.gi_ray_count = config.gi_ray_count;
 
     // config
     if (config.print_info)
@@ -120,6 +128,8 @@ PixelBuffer renderSceneToBuffer(Scene& scene, RenderConfig& config)
         std::cout<<"num_threads:"<<config.num_threads<<std::endl;
         std::cout<<"bucket_size:"<<config.bucket_size<<std::endl;
         std::cout<<"ray_depth:"<<config.ray_depth<<std::endl;
+        std::cout<<"gi_ray_count:"<<config.gi_ray_count<<std::endl;
+        std::cout<<"sample_per_pixel:"<<config.sample_per_pixel<<std::endl;
     }
 
 
@@ -145,7 +155,7 @@ PixelBuffer renderSceneToBuffer(Scene& scene, RenderConfig& config)
     // Start timer
     auto start = std::chrono::high_resolution_clock::now();
 
-    bucketRender(scene, buffer, config.num_threads, config.bucket_size, config.ray_depth);
+    bucketRender(scene, buffer, config.num_threads, config.bucket_size, config.ray_depth, config.sample_per_pixel);
 
 //    // End timer
     auto end = std::chrono::high_resolution_clock::now();

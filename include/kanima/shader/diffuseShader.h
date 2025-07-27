@@ -7,7 +7,7 @@
 
 namespace krt
 {
-Color diffuseShader(IntersectionData& intersectData, Scene& scene);
+Color diffuseShader(const Ray& ray, IntersectionData& intersectData, Scene& scene, int max_depth);
 
 }
 

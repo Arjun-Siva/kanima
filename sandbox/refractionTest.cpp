@@ -18,6 +18,8 @@ int main()
     config.use_BVH = true;
     config.ray_depth = 5;
     config.print_info = true;
+    config.gi_ray_count = 0;
+    config.sample_per_pixel = 4;
 
     krt::PixelBuffer output_buff = renderSceneToBuffer(scene, config);
 

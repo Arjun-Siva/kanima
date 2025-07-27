@@ -11,6 +11,7 @@
 #include <mutex>
 #include <queue>
 #include <chrono>
+#include <cstdlib>
 
 
 namespace krt
@@ -28,6 +29,8 @@ struct RenderConfig
     int num_threads = 8;
     int bucket_size = 24;
     int ray_depth = 5;
+    int gi_ray_count = 0;
+    int sample_per_pixel = 1;
 };
 
 

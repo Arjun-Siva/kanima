@@ -1,10 +1,12 @@
 #include <kanima/shader/diffuseShader.h>
+#include <kanima/shader/recursiveShader.h>
 
 namespace krt
 {
 const double SHADOW_BIAS = 1e-3;
+const double RAY_HIT_BIAS = 1e-3;
 
-Color diffuseShader(IntersectionData& intersectData, Scene& scene)
+Color diffuseShader(const Ray& ray, IntersectionData& intersectData, Scene& scene, int max_depth)
 {
     const Material hitMaterial = *intersectData.material;
 
@@ -12,9 +14,40 @@ Color diffuseShader(IntersectionData& intersectData, Scene& scene)
     const float albedoR = albedo.r;
     const float albedoG = albedo.g;
     const float albedoB = albedo.b;
+
+    Color pixelColor = Color(0, 0, 0);
+
+    // local hit matrix
+    vec3 rightAxis = ray.d.cross(intersectData.hitPointNormal).normalized();
+    vec3 upAxis = intersectData.hitPointNormal;
+    vec3 forwardAxis = rightAxis.cross(upAxis);
+    mat3 localHitMatrix = mat3(rightAxis, upAxis, forwardAxis);
+
+    // global illumination
+    for (int i = 0; i < scene.gi_ray_count; i++)
+    {
+        float randomAngleInXY = M_PI * static_cast<float>(rand()) / RAND_MAX;
+        vec3 randomVecInXY = vec3(cos(randomAngleInXY), sin(randomAngleInXY), 0);
+
+        float randomAngleInXZ = 2 * M_PI * static_cast<float>(rand()) / RAND_MAX;
+        mat3 rotateAroundY = mat3(vec3(cos(randomAngleInXZ), 0, -sin(randomAngleInXZ)),
+                                  vec3(0, 1, 0),
+                                  vec3(sin(randomAngleInXZ), 0, cos(randomAngleInXZ))
+                                  );
+
+        vec3 randVecInXYRotated = rotateAroundY.transpose() * randomVecInXY;
+
+        vec3 diffReflRayDir = (localHitMatrix.transpose() * randVecInXYRotated).normalized();
+        vec3 diffReflRayOrg = intersectData.hitPoint + intersectData.hitPointNormal * RAY_HIT_BIAS;
+
+        Ray diffReflRay = Ray(diffReflRayOrg, diffReflRayDir, RayType::reflection, ray.pathDepth + 1);
+
+        pixelColor = pixelColor + recursiveShader(diffReflRay, scene, max_depth);
+    }
+
+
     // Shadow ray
     vec3 shadowOrigin = intersectData.hitPoint + intersectData.hitPointNormal * SHADOW_BIAS;
-    Color pixelColor = Color(0, 0, 0);
 
     for (const Light& light : scene.lights)
     {
@@ -79,6 +112,10 @@ Color diffuseShader(IntersectionData& intersectData, Scene& scene)
         }
 
     } // lights loop end
+
+    pixelColor = pixelColor * (1.0f / (scene.gi_ray_count + 1));
+
+
     return pixelColor;
 }
 

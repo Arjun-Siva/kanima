@@ -4,7 +4,7 @@
 
 namespace krt
 {
-Color recursiveShader(const Ray &ray, Scene& scene, int max_depth)
+Color recursiveShader(const Ray& ray, Scene& scene, int max_depth)
 {
     Color pixelColor = scene.bgColor;
 
@@ -31,7 +31,7 @@ Color recursiveShader(const Ray &ray, Scene& scene, int max_depth)
 
     if (hitMaterial.type == MaterialType::Diffuse)
     {
-        return diffuseShader(iData, scene);
+        return diffuseShader(ray, iData, scene, max_depth);
     }
 
     else if (hitMaterial.type == MaterialType::Reflective)
