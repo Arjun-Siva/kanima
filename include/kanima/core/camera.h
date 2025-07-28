@@ -36,6 +36,8 @@ public:
 
     void setOrientation(mat3& matrix);
 
+    void setFocalLength(float focalLength);
+
     // movements
 
     // displacement

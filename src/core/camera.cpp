@@ -41,6 +41,11 @@ void Camera::setOrientation(mat3& matrix)
     this->up = matrix.transpose() * this->up;
 }
 
+void Camera::setFocalLength(float focalLength)
+{
+    this->focalLength = focalLength;
+}
+
 
 Ray Camera::generateRay(float u, float v) const
 {
