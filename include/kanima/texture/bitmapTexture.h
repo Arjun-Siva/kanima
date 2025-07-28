@@ -17,7 +17,7 @@ private:
 
 public:
     BitmapTexture(const std::string& name, const std::string& filename)
-        : Texture(name, "albedo") {
+        : Texture(name, "bitmap") {
 
         std::string fixedPath = filename;
 

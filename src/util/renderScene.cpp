@@ -15,6 +15,7 @@ struct Bucket
 std::queue<Bucket> renderQueue;
 std::mutex queueMutex;
 int numberOfBuckets;
+bool printinfo = false;
 
 void createBuckets(int imageWidth, int imageHeight, int bucketSize)
 {
@@ -70,7 +71,8 @@ void workerThread(Scene& scene, PixelBuffer& buffer, int ray_depth, int sample_p
 
         }
         renderRegion(scene, buffer, region.x, region.y, region.width, region.height, ray_depth, sample_per_pixel);
-        std::cout<< (1.0f - static_cast<float>(renderQueue.size()) / numberOfBuckets) * 100 <<"% completed."<<std::endl;
+        if (printinfo)
+            std::cout<< (1.0f - static_cast<float>(renderQueue.size()) / numberOfBuckets) * 100 <<"% completed."<<std::endl;
     }
 }
 
@@ -112,9 +114,10 @@ PixelBuffer renderSceneToBuffer(Scene& scene, RenderConfig& config)
     scene.height = config.buffer_height;
     scene.width = config.buffer_width;
     scene.gi_ray_count = config.gi_ray_count;
+    printinfo = config.print_info;
 
     // config
-    if (config.print_info)
+    if (printinfo)
     {
         std::cout<<"Config:"<<std::endl;
         if(config.use_BVH)
@@ -137,19 +140,20 @@ PixelBuffer renderSceneToBuffer(Scene& scene, RenderConfig& config)
     {
         if (scene.bvhRoot == nullptr || config.rebuild_BVH)
         {
-            if (config.print_info)
+            if (printinfo)
                 std::cout<<"Building BVH tree start"<<std::endl;
             buildBVHTree(scene, config.min_triangles_per_leaf, config.max_tree_depth);
-            if (config.print_info)
+            if (printinfo)
                 std::cout<<"Building BVH tree completed"<<std::endl;
         }
         else
         {
-            std::cout<<"Tree already built"<<std::endl;
+            if (printinfo)
+                std::cout<<"Tree already built"<<std::endl;
         }
     }
 
-    if (config.print_info)
+    if (printinfo)
         std::cout<<"Starting pixel-wise render"<<std::endl;
 
     // Start timer
@@ -162,7 +166,7 @@ PixelBuffer renderSceneToBuffer(Scene& scene, RenderConfig& config)
 
     // Calculate duration
     std::chrono::duration<double> duration = end - start;
-    if (config.print_info)
+    if (printinfo)
     {
         std::cout<<"Completed pixel-wise render"<<std::endl;
         std::cout << "Time taken: " << duration.count() << " seconds\n";
